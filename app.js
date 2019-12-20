@@ -31,12 +31,14 @@ app.get("/login", function(req, res){
 });
 
 app.post("/login", function(req, res){
-  User.find({username: req.body.username, password: req.body.password}, function(err, foundUser){
+  User.findOne({email: req.body.username}, function(err, foundUser){
     if (err) {
       console.log(err);
     } else {
       if (foundUser){
-        res.render("secrets");
+        if (foundUser.password === req.body.password) {
+          res.render("secrets");
+        }
       }
     }
   });
