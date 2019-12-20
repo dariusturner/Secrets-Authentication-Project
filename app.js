@@ -3,6 +3,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require('mongoose');
+const encrypt = require('mongoose-encryption');
 
 const app = express();
 const port = 3000;
@@ -15,10 +16,13 @@ app.use(bodyParser.urlencoded({
 
 mongoose.connect('mongodb://localhost:27017/userDB', {useNewUrlParser: true});
 
-const userSchema = {
+const userSchema = new mongoose.Schema({
   email: String,
   password: String
-};
+});
+
+const secret = "Better-you-than-me!";
+userSchema.plugin(encrypt, { secret: secret, encryptedFields: ["password"] });
 
 const User = new mongoose.model("User", userSchema);
 
@@ -39,6 +43,8 @@ app.post("/login", function(req, res){
         if (foundUser.password === req.body.password) {
           res.render("secrets");
         }
+      } else {
+        res.send("<h1>404</h1><p>Sorry that account does is not registered for this site.</p><a href='/'>Try Again</a><style>h1{font-size:8em;text-align:center;margin-bottom: 10px;}p{font-size:2em;text-align:center;}a{font-size:2em;text-align:center;display: block;color: blue;text-decoration: none;}a:hover{color:#33bbff;}</style>");
       }
     }
   });
