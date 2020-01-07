@@ -31,7 +31,8 @@ mongoose.set('useCreateIndex', true);
 
 const userSchema = new mongoose.Schema({
   email: String,
-  password: String
+  password: String,
+  secret: String
 });
 
 userSchema.plugin(passportLocalMongoose);
@@ -87,18 +88,46 @@ app.post("/register", function(req, res){
 });
 
 app.get("/secrets", function(req, res){
+  User.find({"secrets": {$ne: null}}, function(err, foundUsers){
+    if (err) {
+      console.log(err);
+    } else {
+      if (foundUser) {
+        res.render("secrets", {usersWithSecrets: foundUsers});
+      }
+    }
+  });
+});
+
+app.get("/submit", function(req, res){
   if (req.isAuthenticated()){
-    res.render("secrets");
+    res.render("submit");
   } else {
     res.redirect("/login");
   }
+});
+
+app.post("/submit", function(req, res){
+  const submittedSecret = req.body.secret;
+
+  User.findById(req.user.id, function(err, foundUser){
+    if (err) {
+      console.log(err);
+    } else {
+      if (foundUser) {
+        foundUser.secret = submittedSecret;
+        foundUser.save(function(){
+          res.redirect("/secrets");
+        });
+      }
+    }
+  });
 });
 
 app.get("/logout", function(req, res){
   req.logout();
   res.redirect("/");
 });
-
 
 app.listen(port, function(){
   console.log("Server is started on port " + port + ".");
